@@ -1,6 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace BruteForceBestTableFit
 {
@@ -11,33 +16,149 @@ namespace BruteForceBestTableFit
 
         static void Main(string[] args)
         {
-            Categories = new List<Category>
-            {
-                new Category("Sorcerer", CategoryType.Interchangeable, new List<Entity>()
-                {
-                    Entity.Morgana, Entity.AurelionSol
-                }),
-                new Category("Shapeshifter", CategoryType.Interchangeable, new List<Entity>()
-                {
-                    Entity.Elise, Entity.Swain, Entity.Shyvana
-                }),
-                new Category("Demon", CategoryType.Interchangeable, new List<Entity>()
-                {
-                    Entity.Elise, Entity.Swain, Entity.Morgana
-                }),
-                new Category("Dragon", CategoryType.Interchangeable, new List<Entity>()
-                {
-                    Entity.AurelionSol, Entity.Shyvana
-                })
-            };
-            CalculateCategoriesIntersectionCount();
-            GenerateAllPossibleTables();
+            //it takes couple of hours on a slow machine to run, hence why i took the route of 
+            //saving the result to disk first and later continue developing using the saved serialized app result/state
+            #region First run
+            //Categories = new List<Category>
+            //{
+            //    new Category("Sorcerer", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Morgana, Entity.AurelionSol, Entity.Karthus, Entity.TwistedFate, Entity.Kassadin, Entity.Ahri, Entity.Lulu, Entity.Veigar
+            //    }),
+            //    new Category("ShapeShifter", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Elise, Entity.Swain, Entity.Shyvana, Entity.Jayce, Entity.Nidalee, Entity.Gnar
+            //    }),
+            //    new Category("Ranger", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Varus, Entity.Ashe, Entity.Vayne, Entity.Kindred
+            //    }),
+            //    new Category("Knight", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Sejuani, Entity.Darius, Entity.Kayle, Entity.Garen, Entity.Mordekaiser, Entity.Poppy
+            //    }),
+            //    new Category("Gunslinger", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Jinx, Entity.Lucian, Entity.Graves, Entity.Gangplank, Entity.MissFortune, Entity.Tristana
+            //    }),
+            //    new Category("Guardian", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Pantheon, Entity.Braum, Entity.Leona
+            //    }),
+            //    new Category("Elementalist", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Brand, Entity.Anivia, Entity.Lissandra, Entity.Kennen
+            //    }),
+            //    new Category("Brawler", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Volibear, Entity.Vi, Entity.Blitzcrank, Entity.Chogath, Entity.RekSai, Entity.Warwick
+            //    }),
+            //    new Category("Blademaster", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Aatrox, Entity.Yasuo, Entity.Camille, Entity.Draven, Entity.Shen, Entity.Fiora, Entity.Gangplank
+            //    }),
+            //    new Category("Assassin", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Evelynn, Entity.Katarina, Entity.Zed, Entity.Akali, Entity.Pyke, Entity.Khazix, Entity.Rengar
+            //    }),
+
+
+            //    new Category("Demon", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Evelynn, Entity.Aatrox, Entity.Brand, Entity.Varus, Entity.Elise, Entity.Swain, Entity.Morgana
+            //    }),
+            //    new Category("Dragon", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Pantheon, Entity.Shyvana, Entity.AurelionSol
+            //    }),
+            //    new Category("Exile", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Yasuo
+            //    }),
+            //    new Category("Glacial", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Volibear, Entity.Lissandra, Entity.Anivia, Entity.Braum, Entity.Sejuani, Entity.Ashe
+            //    }),
+            //    new Category("Hextech", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Camille, Entity.Vi, Entity.Jinx, Entity.Jayce
+            //    }),
+            //    new Category("Imperial", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Katarina, Entity.Draven, Entity.Darius, Entity.Swain
+            //    }),
+            //    new Category("Ninja", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Zed, Entity.Akali, Entity.Shen, Entity.Kennen
+            //    }),
+            //    new Category("Noble", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Fiora, Entity.Leona, Entity.Lucian, Entity.Garen, Entity.Kayle, Entity.Vayne
+            //    }),
+            //    new Category("Phantom", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Mordekaiser, Entity.Kindred, Entity.Karthus
+            //    }),
+            //    new Category("Pirate", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Pyke, Entity.Gangplank, Entity.Graves, Entity.MissFortune, Entity.TwistedFate
+            //    }),
+            //    new Category("Robot", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Blitzcrank
+            //    }),
+            //    new Category("Void", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Khazix, Entity.RekSai, Entity.Chogath, Entity.Kassadin
+            //    }),
+            //    new Category("Wild", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Rengar, Entity.Warwick, Entity.Nidalee, Entity.Gnar, Entity.Ahri
+            //    }),
+            //    new Category("Yordle", CategoryType.Interchangeable, new List<Entity>()
+            //    {
+            //        Entity.Kennen, Entity.Tristana, Entity.Poppy, Entity.Gnar, Entity.Lulu, Entity.Veigar
+            //    })
+            //};
+
+            //CalculateCategoriesIntersectionCount();
+            //GenerateAllPossibleTablesAndSaveValidOnes(); 
+            #endregion
+
+            //maximize console
+            Maximize();
+            //increase the console write buffer size
+            Console.BufferWidth = 1000;
+
+            foreach (var table in JsonConvert.DeserializeObject<List<Table>>(File.ReadAllText("result.txt")))
+                table.PrintTable();
         }
 
         static void CalculateCategoriesIntersectionCount()
         {
             foreach (var entity in Categories.SelectMany(c => c.Entities).DistinctBy(e => e.Name))
                 Table.AllCategoriesIntersectionCount += (int)(Math.Ceiling(entity.Categories.Count / 2.0));
+        }
+
+        static void GenerateAllPossibleTablesAndSaveValidOnes()
+        {
+            var input = Categories.Select(c => c.Name).ToArray();
+            var subsets = Helpers.GetSubsets(input);
+            Tables = new List<Table>();
+            Parallel.ForEach(subsets, subset =>
+            {
+                var t = new Table(subset.Select(s => Categories.Single(c => c.Name == s)).ToList(),
+                    input.Where(iEl => !subset.Contains(iEl)).Select(s => Categories.Single(c => c.Name == s)).ToList(), CellStackStrategy.Horizontal);
+                if (t.IsValid)
+                {
+                    Tables.Add(t);
+                    Tables.Add(t.Clone(CellStackStrategy.Vertical));
+                }
+            });
+            File.WriteAllText("result.txt", JsonConvert.SerializeObject(Tables, new JsonSerializerSettings()
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            }));
         }
 
         static void GenerateAllPossibleTables()
@@ -48,9 +169,12 @@ namespace BruteForceBestTableFit
             foreach (var subset in subsets)
             {
                 var t = new Table(subset.Select(s => Categories.Single(c => c.Name == s)).ToList(),
-                    input.Where(iEl => !subset.Contains(iEl)).Select(s => Categories.Single(c => c.Name == s)).ToList());
+                    input.Where(iEl => !subset.Contains(iEl)).Select(s => Categories.Single(c => c.Name == s)).ToList(), CellStackStrategy.Horizontal);
                 if (t.IsValid)
+                {
                     Tables.Add(t);
+                    Tables.Add(t.Clone(CellStackStrategy.Vertical));
+                }
             }
 
             foreach (var table in Tables)
@@ -59,112 +183,14 @@ namespace BruteForceBestTableFit
                 Console.WriteLine();
             }
         }
-    }
 
-    public class Table
-    {
-        public List<Category> Columns { get; set; }
-        public List<Category> Rows { get; set; }
-        public bool IsValid { get; set; }
-        public string[,] TableArray { get; set; }
-        public int IntersectionCount { get; set; }
-        public int TableVerticalScore { get; set; }
-        public int TableHorizontalScore { get; set; }
-        public static int AllCategoriesIntersectionCount { get; set; }
+        [DllImport("user32.dll")]
+        public static extern bool ShowWindow(System.IntPtr hWnd, int cmdShow);
 
-        public Table(List<Category> columns, List<Category> rows)
+        static void Maximize()
         {
-            this.Columns = columns;
-            this.Rows = rows;
-            this.TableArray = this.GenerateTableArray();
-            this.IsValid = this.IsValidateTable();
+            Process p = Process.GetCurrentProcess();
+            ShowWindow(p.MainWindowHandle, 3); //SW_MAXIMIZE = 3
         }
-
-        public void PrintTable()
-        {
-            Console.WriteLine($"table (Cn,Rn:In) => ({Columns.Count},{Rows.Count}:{IntersectionCount}) and Vertical score of {TableVerticalScore}, Horizontal score of {TableHorizontalScore}, entities used {AllCategoriesIntersectionCount}");
-            ArrayPrinter.PrintToConsole(TableArray);
-        }
-
-        private string[,] GenerateTableArray()
-        {
-            var arr = new string[Rows.Count + 1, Columns.Count + 1];
-            arr[0, 0] = string.Empty;
-            for (var i = 1; i <= Rows.Count; i++)
-                arr[i, 0] = Rows[i - 1].Name;
-            for (var j = 1; j <= Columns.Count; j++)
-                arr[0, j] = Columns[j - 1].Name;
-
-            for (var i = 1; i <= Rows.Count; i++)
-                for (var j = 1; j <= Columns.Count; j++)
-                {
-                    var intersections = Columns[j - 1].Entities.Where(c => Rows[i - 1].Entities.Contains(c))
-                        .Select(e => e.Name);
-                    if (intersections != null && intersections.Any())
-                    {
-                        IntersectionCount += intersections.Count();
-                        arr[i, j] = string.Join(", ", intersections);
-                    }
-                    else
-                        arr[i, j] = string.Empty;
-                }
-            return arr;
-        }
-
-        private bool IsValidateTable()
-        {
-            return Columns.Any() && Rows.Any()
-                                 && Columns.All(c => c.CategoryType == CategoryType.Column || c.CategoryType == CategoryType.Interchangeable)
-                                 && Rows.All(r => r.CategoryType == CategoryType.Row || r.CategoryType == CategoryType.Interchangeable)
-                                 && IntersectionCount >= AllCategoriesIntersectionCount;
-        }
-    }
-
-    public class Category
-    {
-        public string Name { get; set; }
-        public List<Entity> Entities { get; set; } = new List<Entity>();
-        public CategoryType CategoryType { get; set; }
-
-        public Category(string name, CategoryType type, List<Entity> entities)
-        {
-            this.Name = name;
-            this.Entities = entities;
-            this.CategoryType = type;
-            foreach (var entity in entities)
-                if (!entity.Categories.Contains(this))
-                    entity.Categories.Add(this);
-        }
-
-    }
-
-    public class Entity
-    {
-        public static Entity Elise = new Entity { Name = "Elise" };
-        public static Entity Swain = new Entity { Name = "Swain" };
-        public static Entity Morgana = new Entity { Name = "Morgana" };
-        public static Entity Shyvana = new Entity { Name = "Shyvana" };
-        public static Entity AurelionSol = new Entity { Name = "AurelionSol" };
-
-        public string Name { get; set; }
-        public List<Category> Categories { get; set; } = new List<Category>();
-
-        private Entity()
-        {
-
-        }
-    }
-
-    public enum CategoryType
-    {
-        Row,
-        Column,
-        Interchangeable
-    }
-
-    public enum CellStackStrategy
-    {
-        Vertical,
-        Horizontal
     }
 }

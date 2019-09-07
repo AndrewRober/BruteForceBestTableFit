@@ -40,6 +40,7 @@ namespace BruteForceBestTableFit
                 }
             }
 
+            //return maxWidth > 20 ? 20 : maxWidth;
             return maxWidth;
         }
 
@@ -56,7 +57,7 @@ namespace BruteForceBestTableFit
             int maxCellWidth = GetMaxCellWidth(arrValues);
             int indentLength = (dimension2Length * maxCellWidth) + (dimension2Length - 1);
             //printing top line;
-            formattedString = string.Format("{0}{1}{2}{3}", cellLeftTop, Indent(indentLength), cellRightTop, System.Environment.NewLine);
+            formattedString = $"{cellLeftTop}{Indent(indentLength)}{cellRightTop}{System.Environment.NewLine}";
 
             for (int i = 0; i < dimension1Length; i++)
             {
@@ -65,7 +66,8 @@ namespace BruteForceBestTableFit
                 for (int j = 0; j < dimension2Length; j++)
                 {
                     string value = (isLeftAligned) ? arrValues[i, j].PadRight(maxCellWidth, ' ') : arrValues[i, j].PadLeft(maxCellWidth, ' ');
-                    lineWithValues += string.Format("{0}{1}", value, cellVerticalLine);
+                    //value = value.Substring(0, maxCellWidth);
+                    lineWithValues += $"{value}{cellVerticalLine}";
                     line += Indent(maxCellWidth);
                     if (j < (dimension2Length - 1))
                     {
@@ -73,15 +75,15 @@ namespace BruteForceBestTableFit
                     }
                 }
                 line += cellVerticalJointRight;
-                formattedString += string.Format("{0}{1}", lineWithValues, System.Environment.NewLine);
+                formattedString += $"{lineWithValues}{System.Environment.NewLine}";
                 if (i < (dimension1Length - 1))
                 {
-                    formattedString += string.Format("{0}{1}", line, System.Environment.NewLine);
+                    formattedString += $"{line}{System.Environment.NewLine}";
                 }
             }
 
             //printing bottom line
-            formattedString += string.Format("{0}{1}{2}{3}", cellLeftBottom, Indent(indentLength), cellRightBottom, System.Environment.NewLine);
+            formattedString += $"{cellLeftBottom}{Indent(indentLength)}{cellRightBottom}{System.Environment.NewLine}";
             return formattedString;
         }
 
@@ -92,27 +94,6 @@ namespace BruteForceBestTableFit
 
         #endregion
 
-        #region Public Methods
-
-        public static void PrintToStream(string[,] arrValues, StreamWriter writer)
-        {
-            if (arrValues == null)
-                return;
-
-            if (writer == null)
-                return;
-
-            writer.Write(GetDataInTableFormat(arrValues));
-        }
-
-        public static void PrintToConsole(string[,] arrValues)
-        {
-            if (arrValues == null)
-                return;
-
-            Console.WriteLine(GetDataInTableFormat(arrValues));
-        }
-
-        #endregion
+        public static void PrintToConsole(string[,] arrValues) => Console.WriteLine(GetDataInTableFormat(arrValues));
     }
 }
